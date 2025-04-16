@@ -28,7 +28,7 @@ deploy:
       - main
   script:
     - echo "Deploying application..."
-    - sls deploy
+    - sls deploy --debug
     - sls invoke --function seed_database --data 'unused'
     - echo "Application successfully deployed."
 
