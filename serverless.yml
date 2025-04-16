@@ -1,4 +1,4 @@
-org: ostcldsol
+org: cldsolgrp04
 app: tla-sample-serverless
 service: tla-sample-serverless
 provider:
