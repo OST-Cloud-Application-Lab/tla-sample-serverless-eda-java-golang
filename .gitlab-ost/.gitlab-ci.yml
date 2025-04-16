@@ -28,7 +28,8 @@ deploy:
       - main
   script:
     - echo "Deploying application..."
-    - sls deploy --debug
+    - export SERVERLESS_ACCESS_KEY=${SERVERLESS_ACCESS_KEY}
+    - sls deploy
     - sls invoke --function seed_database --data 'unused'
     - echo "Application successfully deployed."
 
