@@ -1,0 +1,134 @@
+org: cldsolgrp04
+app: tla-sample-serverless
+service: tla-manager
+provider:
+  name: aws
+  region: us-east-1
+  runtime: java17
+  timeout: 10
+  environment:
+    TLA_TABLE_NAME: tla-manager-table-dev
+    TLA_BUS_NAME: tla-bus-dev
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:BatchGetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource:
+        - !GetAtt TLAWriteDynamoDBTable.Arn
+
+package:
+  artifact: target/tla-sample-serverless-1.2-SNAPSHOT-aws.jar
+
+resources:
+  Resources:
+    TLAWriteDynamoDBTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: "name"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "name"
+            KeyType: "HASH"
+        TableName: ${self:provider.environment.TLA_TABLE_NAME}
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+    TLAEventBus:
+      Type: "AWS::Events::EventBus"
+      Properties:
+        Name: ${self:provider.environment.TLA_BUS_NAME}
+        Description: "Event bus for TLA events"
+    TLAPipe:
+      Type: "AWS::Pipes::Pipe"
+      Properties:
+        Name: "tla-pipe"
+        RoleArn: !GetAtt TLAPipeRole.Arn
+        DesiredState: RUNNING
+        Source: !GetAtt TLAWriteDynamoDBTable.StreamArn
+        SourceParameters:
+          FilterCriteria:
+            Filters:
+              - Pattern: '{ "dynamodb.NewImage.tlas.L.M.status.S": [{ "prefix": "ACCEPTED" }] }'
+          DynamoDBStreamParameters:
+            BatchSize: 1
+            StartingPosition: LATEST
+        Target: !GetAtt TLAEventBus.Arn
+        TargetParameters:
+          EventBridgeEventBusParameters:
+            Source: tla-sample-serverless
+        # Target: !Sub arn:aws:events:${self:provider.region}:${aws:accountId}:event-bus/default
+    TLAPipeRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: pipes.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: "tla-pipe-policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - events:PutEvents
+                    - dynamodb:DescribeStream
+                    - dynamodb:GetRecords
+                    - dynamodb:GetShardIterator
+                    - dynamodb:ListStreams
+                  Resource: "*"
+
+functions:
+  get_all_tla_groups:
+    handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+    snapStart: true
+    environment:
+      SPRING_CLOUD_FUNCTION_DEFINITION: getAllTLAGroupsHandler
+    events:
+      - httpApi:
+          path: /tlas
+          method: get
+  add_new_tla_group:
+    handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+    snapStart: true
+    environment:
+      SPRING_CLOUD_FUNCTION_DEFINITION: addTLAGroupHandler
+    events:
+      - httpApi:
+          path: /tlas
+          method: post
+  add_new_tla:
+    handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+    snapStart: true
+    environment:
+      SPRING_CLOUD_FUNCTION_DEFINITION: addTLAHandler
+    events:
+      - httpApi:
+          path: /tlas/{groupName}
+          method: post
+  accept_tla:
+    handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+    snapStart: true
+    environment:
+      SPRING_CLOUD_FUNCTION_DEFINITION: acceptTLAHandler
+    events:
+      - httpApi:
+          path: /tlas/{groupName}/{name}/accept
+          method: put
+  seed_database:
+    handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+    snapStart: true
+    environment:
+      SPRING_CLOUD_FUNCTION_DEFINITION: databaseSeedHandler
+

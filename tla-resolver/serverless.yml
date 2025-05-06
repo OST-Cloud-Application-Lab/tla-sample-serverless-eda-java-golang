@@ -1,0 +1,78 @@
+org: cldsolgrp04
+app: tla-sample-serverless
+service: tla-resolver
+provider:
+  name: aws
+  region: us-east-1
+  runtime: provided.al2
+  timeout: 10
+  environment:
+    TLA_TABLE_NAME: tla-resolver-table-dev
+    TLA_BUS_NAME: tla-bus-dev
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:BatchGetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource:
+        - !GetAtt TLAReadDynamoDBTable.Arn
+
+resources:
+  Resources:
+    TLAReadDynamoDBTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: "name"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "name"
+            KeyType: "HASH"
+        TableName: ${self:provider.environment.TLA_TABLE_NAME}
+
+functions:
+  read_all_tla_groups:
+    handler: bootstrap
+    package:
+      artifact: dist/tla_groups/tla_groups.zip
+      individually: true
+    events:
+      - httpApi:
+          path: /tlas
+          method: get
+  read_all_tlas:
+    handler: bootstrap
+    package:
+      artifact: dist/tlas/tlas.zip
+      individually: true
+    events:
+      - httpApi:
+          path: /tlas/all/{name}
+          method: get
+  read_tla_group_by_name:
+    handler: bootstrap
+    package:
+      artifact: dist/tla_group_by_name/tla_group_by_name.zip
+      individually: true
+    events:
+      - httpApi:
+          path: /tlas/{groupName}
+          method: get
+  put_accepted_tla:
+    handler: bootstrap
+    package:
+      artifact: dist/put_accepted_tla/put_accepted_tla.zip
+      individually: true
+    events:
+      - eventBridge:
+          eventBus: arn:aws:events:${self:provider.region}:${aws:accountId}:event-bus/${self:provider.environment.TLA_BUS_NAME}
+          pattern:
+            source:
+              - tla-sample-serverless

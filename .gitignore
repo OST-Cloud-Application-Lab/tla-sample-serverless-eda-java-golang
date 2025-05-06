@@ -1,11 +1,12 @@
 target/
 src-gen/
-!.mvn/wrapper/maven-wrapper.jar
+!tla-manager/.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
 ### IntelliJ IDEA ###
 .idea/*
+.idea
 *.iws
 *.iml
 *.ipr
@@ -38,3 +39,5 @@ build/
 ### Serverless Framework ###
 .serverless
 
+### Go ###
+dist/
