@@ -44,7 +44,7 @@ tla-resolver-build:
     refs:
       - main
 
-deploy-tla-manager:
+deploy-all:
   extends: .deploy
   script:
     - echo "Deploying tla-manager..."
@@ -52,15 +52,7 @@ deploy-tla-manager:
     - export SERVERLESS_ACCESS_KEY=${SERVERLESS_ACCESS_KEY}
     - sls deploy
     - sls invoke --function seed_database --data 'unused'
-    - echo "Application successfully deployed."
-
-deploy-tla-resolver:
-  extends: .deploy
-  needs: [ 'deploy-tla-manager' ]
-  script:
-    - echo "Deploying tla-resolver..."
-    - cd tla-resolver
-    - export SERVERLESS_ACCESS_KEY=${SERVERLESS_ACCESS_KEY}
+    - cd ../tla-resolver
     - sls deploy
     - echo "Application successfully deployed."
 
