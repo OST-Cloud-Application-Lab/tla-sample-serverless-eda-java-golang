@@ -1,4 +1,4 @@
-org: cldsolgrp04
+org: osttlasample2
 app: tla-sample-serverless
 service: tla-resolver
 provider:

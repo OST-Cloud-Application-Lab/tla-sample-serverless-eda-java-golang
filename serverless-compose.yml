@@ -1,4 +1,4 @@
-org: cldsolgrp04
+org: osttlasample2
 services:
   tla-manager:
     path: tla-manager

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  tla-manager-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,17 +20,36 @@ jobs:
       - name: Install Graphviz
         run: sudo apt-get -y install graphviz
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: |
+          cd tla-manager
+          mvn -B package --file pom.xml
       - uses: actions/cache@v4
-        id: cache-target
+        id: cache-target-manager
         with:
-          path: target
-          key: tla-sample-app-serverless-target-${{ github.run_id }}
+          path: tla-manager/target
+          key: tla-sample-app-serverless-manager-${{ github.run_id }}
+
+  tla-resolver-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.3'
+      - name: Build with Make
+        run: |
+          cd tla-resolver
+          make build
+      - uses: actions/cache@v4
+        id: cache-target-resolver
+        with:
+          path: tla-resolver/dist
+          key: tla-sample-app-serverless-resolver-${{ github.run_id }}
 
   deploy:
     name: deploy
     runs-on: ubuntu-latest
-    needs: build
+    needs: [tla-manager-build, tla-resolver-build]
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 18.x
@@ -38,14 +57,31 @@ jobs:
         with:
           node-version: 18.x
       - uses: actions/cache@v4
-        id: cache-target
+        id: cache-target-manager
         with:
-          path: target
-          key: tla-sample-app-serverless-target-${{ github.run_id }}
+          path: tla-manager/target
+          key: tla-sample-app-serverless-manager-${{ github.run_id }}
+      - uses: actions/cache@v4
+        id: cache-target-resolver
+        with:
+          path: tla-resolver/dist
+          key: tla-sample-app-serverless-resolver-${{ github.run_id }}
       - run: npm install -g serverless
-      - run: serverless deploy
+      - name: Deploy tla-manager
+        run: |
+          cd tla-manager
+          serverless deploy
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-      - run: serverless invoke --function seed_database --data 'unused'
+      - name: Seed database
+        run: |
+          cd tla-manager
+          serverless invoke --function seed_database --data 'unused'
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+      - name: Deploy tla-resolver
+        run: |
+          cd tla-resolver
+          serverless deploy
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
