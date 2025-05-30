@@ -1,5 +1,5 @@
 # Three Letter Abbreviations (TLA) Sample Application - Implemented Serverless - Grp04
-[![Build and deploy main branch](https://github.com/stefan-ka/tla-sample-serverless/actions/workflows/main_build.yml/badge.svg)](https://github.com/stefan-ka/tla-sample-serverless/actions/workflows/main_build.yml) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build and deploy main branch](https://github.com/OST-Cloud-Application-Lab/tla-sample-serverless-eda-java-golang/actions/workflows/main_build.yml/badge.svg)](https://github.com/OST-Cloud-Application-Lab/tla-sample-serverless-eda-java-golang/actions/workflows/main_build.yml) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This repository implements the [Three Letter Abbreviations (TLA) Sample Application](https://github.com/ContextMapper/ddd-cm-tla-sample-application) of the [Context Mapper](https://contextmapper.org) project with serverless technology.
 The sample application is built with the CQRS ([Command Query Responsibility Segregation](https://martinfowler.com/bliki/CQRS.html)) pattern and is used to manage TLAs (Three Letter Abbreviations) in a distributed system.
@@ -130,7 +130,6 @@ _Note_ that you will need to replace `{baseUrl}` with the URLs you get from `sls
 The base URL is different for each subproject, as the API Gateway is created for each subproject separately, so make sure to use the correct one.
 
 ### TLA Manager Endpoints
-The TLA manager endpoints are deployed on AWS with the base URL `https://nlygqcukx6.execute-api.us-east-1.amazonaws.com`.
 
 | Endpoint                        | Method | Description                                                                                                                                                                                   |
 |---------------------------------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -140,7 +139,6 @@ The TLA manager endpoints are deployed on AWS with the base URL `https://nlygqcu
 | /tlas/{groupName}/{name}/accept | PUT    | Accept a proposed TLA ([state transition operation](https://microservice-api-patterns.org/patterns/responsibility/operationResponsibilities/StateTransitionOperation): PROPOSED -> ACCEPTED). |
 
 ### TLA Resolver Endpoints
-The TLA resolver endpoints are deployed on AWS with the base URL `https://5rlkq2ywg0.execute-api.us-east-1.amazonaws.com`.
 
 | Endpoint                        | Method | Description                                                                                                                                                                                   |
 |---------------------------------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -394,17 +392,6 @@ With the endpoint `/tlas/{groupName}/{name}/accept` (PUT) you can accept a TLA (
 This endpoint does not expect a body (JSON) and does also not return one. The command is successful if HTTP state 200 is returned.
 Once the TLA is accepted, the query endpoints listed above (such as `/tlas` or `/tlas/{groupName}`) will now list them.
 
-## Contributing
-Contributions are always welcome! Here are some ways how you can contribute:
-* Create GitHub issues if you find bugs or just want to give suggestions for improvements.
-* This is an open source project: if you want to code,
-  [create pull requests](https://help.github.com/articles/creating-a-pull-request/) from
-  [forks of this repository](https://help.github.com/articles/fork-a-repo/). Please refer to a GitHub issue if you
-  contribute this way.
-
-## Licence
-This project is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-
 ## References and additional resources
 * [Create and deploy AWS Step Function with Serverless framework](https://blog.searce.com/create-and-deploy-aws-step-function-with-serverless-framework-e6e9844359e5)
 * [AWS Golang Rest API with DynamoDB](https://www.serverless.com/examples/aws-golang-rest-api-with-dynamodb)
@@ -413,3 +400,18 @@ This project is released under the [Apache License, Version 2.0](http://www.apac
 * [Event-based apps with Go and EventBridge](https://wahlstrand.dev/posts/2022-06-26-event-based-system-on-aws/)
 * [Deploy Go Lambda functions with .zip file archives](https://docs.aws.amazon.com/lambda/latest/dg/golang-package.html)
 * [EventBridge to Lambda](https://serverlessland.com/patterns/eventbridge-lambda-sls)
+
+## Contributing
+Contributions are always welcome! Here are some ways how you can contribute:
+* Create GitHub issues if you find bugs or just want to give suggestions for improvements.
+* This is an open source project: if you want to code,
+  [create pull requests](https://help.github.com/articles/creating-a-pull-request/) from
+  [forks of this repository](https://help.github.com/articles/fork-a-repo/). Please refer to a GitHub issue if you
+  contribute this way.
+
+## Acknowledgements
+This refactored version of the [original serverless TLA sample application](https://github.com/OST-Cloud-Application-Lab/tla-sample-serverless) was implemented by [Nico Fehr](https://github.com/Norukh) and [Kyra Maag](https://github.com/kymaag) as part of a group assignment for the [Cloud Solutions](https://studien.ost.ch/allModules/37167_M_CldSol.html) course at [OST](https://www.ost.ch/de/studium/informatik/bachelor-informatik) in the spring semester of 2025. Many thanks to Nico and Kyra for their contribution!
+
+
+## Licence
+This project is released under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
