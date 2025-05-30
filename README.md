@@ -1,4 +1,4 @@
-# Three Letter Abbreviations (TLA) Sample Application - Implemented Serverless - Grp04
+# Three Letter Abbreviations (TLA) Sample Application - Implemented Serverless
 [![Build and deploy main branch](https://github.com/OST-Cloud-Application-Lab/tla-sample-serverless-eda-java-golang/actions/workflows/main_build.yml/badge.svg)](https://github.com/OST-Cloud-Application-Lab/tla-sample-serverless-eda-java-golang/actions/workflows/main_build.yml) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This repository implements the [Three Letter Abbreviations (TLA) Sample Application](https://github.com/ContextMapper/ddd-cm-tla-sample-application) of the [Context Mapper](https://contextmapper.org) project with serverless technology.
