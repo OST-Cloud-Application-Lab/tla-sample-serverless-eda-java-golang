@@ -1,12 +1,12 @@
 package internal_repos
 
-import "github.com/aws/aws-sdk-go/service/dynamodb"
+import "github.com/aws/aws-sdk-go-v2/service/dynamodb"
 
 type DynamoDBRepository struct {
-	client *dynamodb.DynamoDB
+	client *dynamodb.Client
 }
 
-func NewDynamoDBRepository(client *dynamodb.DynamoDB) *DynamoDBRepository {
+func NewDynamoDBRepository(client *dynamodb.Client) *DynamoDBRepository {
 	return &DynamoDBRepository{
 		client: client,
 	}

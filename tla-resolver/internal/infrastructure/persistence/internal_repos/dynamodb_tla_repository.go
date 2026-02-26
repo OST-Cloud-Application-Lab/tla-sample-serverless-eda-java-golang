@@ -1,26 +1,25 @@
 package internal_repos
 
 import (
-	. "contextmapper.org/tla-resolver/internal/domain/tla"
+	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"os"
+
+	. "contextmapper.org/tla-resolver/internal/domain/tla"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 func (r *DynamoDBRepository) FindById(name string) (*TLAGroup, error) {
-	result, err := r.client.GetItem(&dynamodb.GetItemInput{
+	result, err := r.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("TLA_TABLE_NAME")),
-		Key: map[string]*dynamodb.AttributeValue{
-			"name": {
-				S: aws.String(name),
-			},
+		Key: map[string]types.AttributeValue{
+			"name": &types.AttributeValueMemberS{Value: name},
 		},
 	})
-
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil, err
 	}
 
@@ -28,12 +27,9 @@ func (r *DynamoDBRepository) FindById(name string) (*TLAGroup, error) {
 		return nil, fmt.Errorf("TLAGroup with name %s not found", name)
 	}
 
-	tlaGroup := &TLAGroup{}
-
-	err = dynamodbattribute.UnmarshalMap(result.Item, tlaGroup)
-	if err != nil {
-		fmt.Println("Failed to unmarshal Record", err)
-		return nil, err
+	tlaGroup := new(TLAGroup)
+	if err := attributevalue.UnmarshalMap(result.Item, tlaGroup); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal record: %w", err)
 	}
 
 	return tlaGroup, nil
@@ -44,7 +40,7 @@ func (r *DynamoDBRepository) FindAll() ([]*TLAGroup, error) {
 		TableName: aws.String(os.Getenv("TLA_TABLE_NAME")),
 	}
 
-	result, err := r.client.Scan(params)
+	result, err := r.client.Scan(context.TODO(), params)
 
 	if err != nil {
 		fmt.Println("Failed to scan items:", err)
@@ -55,7 +51,7 @@ func (r *DynamoDBRepository) FindAll() ([]*TLAGroup, error) {
 	for _, i := range result.Items {
 		tlaGroup := &TLAGroup{}
 
-		err = dynamodbattribute.UnmarshalMap(i, tlaGroup)
+		err = attributevalue.UnmarshalMap(i, tlaGroup)
 		if err != nil {
 			fmt.Println("Failed to unmarshal Record", err)
 			return nil, err
@@ -67,15 +63,15 @@ func (r *DynamoDBRepository) FindAll() ([]*TLAGroup, error) {
 }
 
 func (r *DynamoDBRepository) PutAcceptedTLA(acceptedTLAGroup *TLAGroup) error {
-	av, err := dynamodbattribute.MarshalMap(acceptedTLAGroup)
+	item, err := attributevalue.MarshalMap(acceptedTLAGroup)
 	if err != nil {
 		fmt.Println("Failed to marshal Record",
 			err)
 	}
 	// upsert the item in the table
-	_, err = r.client.PutItem(&dynamodb.PutItemInput{
+	_, err = r.client.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String(os.Getenv("TLA_TABLE_NAME")),
-		Item:      av,
+		Item:      item,
 	})
 	if err != nil {
 		fmt.Println("Failed to put item in table", err)

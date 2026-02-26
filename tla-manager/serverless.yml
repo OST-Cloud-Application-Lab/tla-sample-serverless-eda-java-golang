@@ -1,10 +1,10 @@
-org: osttlasample2
+org: ${env:TLA_SAMPLE_APP_SERVERLESS_ORG}
 app: tla-sample-serverless
 service: tla-manager
 provider:
   name: aws
   region: us-east-1
-  runtime: java17
+  runtime: java21
   timeout: 10
   environment:
     TLA_TABLE_NAME: tla-manager-table-dev

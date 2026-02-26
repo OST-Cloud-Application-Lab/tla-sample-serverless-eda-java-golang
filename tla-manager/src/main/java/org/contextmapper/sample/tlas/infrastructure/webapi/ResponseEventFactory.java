@@ -1,12 +1,12 @@
 package org.contextmapper.sample.tlas.infrastructure.webapi;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.http.HttpStatusCode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class ResponseEventFactory {
                     .withStatusCode(statusCode)
                     .withIsBase64Encoded(false)
                     .withBody(objectMapper.writeValueAsString(new ErrorResponse(message, statusCode)));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.info("Could not serialize error message object", e);
             throw new RuntimeException(e);
         }

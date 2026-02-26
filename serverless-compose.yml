@@ -1,8 +1,0 @@
-org: osttlasample2
-services:
-  tla-manager:
-    path: tla-manager
-  tla-resolver:
-    path: tla-resolver
-    depends_on:
-      - tla-manager

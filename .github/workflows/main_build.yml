@@ -10,11 +10,11 @@ jobs:
   tla-manager-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v6
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
           cache: maven
       - name: Install Graphviz
@@ -23,7 +23,7 @@ jobs:
         run: |
           cd tla-manager
           mvn -B package --file pom.xml
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-target-manager
         with:
           path: tla-manager/target
@@ -32,15 +32,15 @@ jobs:
   tla-resolver-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.3'
+          go-version: '1.26.0'
       - name: Build with Make
         run: |
           cd tla-resolver
           make build
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-target-resolver
         with:
           path: tla-resolver/dist
@@ -51,17 +51,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tla-manager-build, tla-resolver-build]
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - name: Use Node.js 25.x
+        uses: actions/setup-node@v6
         with:
-          node-version: 18.x
-      - uses: actions/cache@v4
+          node-version: 25.x
+      - uses: actions/cache@v5
         id: cache-target-manager
         with:
           path: tla-manager/target
           key: tla-sample-app-serverless-manager-${{ github.run_id }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-target-resolver
         with:
           path: tla-resolver/dist
@@ -73,15 +73,21 @@ jobs:
           serverless deploy
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+          TLA_SAMPLE_APP_SERVERLESS_ORG: ${{ secrets.TLA_SAMPLE_APP_SERVERLESS_ORG }}
+          SLS_AWS_SDK: 3
       - name: Seed database
         run: |
           cd tla-manager
           serverless invoke --function seed_database --data 'unused'
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+          TLA_SAMPLE_APP_SERVERLESS_ORG: ${{ secrets.TLA_SAMPLE_APP_SERVERLESS_ORG }}
+          SLS_AWS_SDK: 3
       - name: Deploy tla-resolver
         run: |
           cd tla-resolver
           serverless deploy
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+          TLA_SAMPLE_APP_SERVERLESS_ORG: ${{ secrets.TLA_SAMPLE_APP_SERVERLESS_ORG }}
+          SLS_AWS_SDK: 3

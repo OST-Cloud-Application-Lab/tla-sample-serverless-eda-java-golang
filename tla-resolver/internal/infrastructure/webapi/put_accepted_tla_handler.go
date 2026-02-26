@@ -1,16 +1,21 @@
 package webapi
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"contextmapper.org/tla-resolver/internal/application"
 	"contextmapper.org/tla-resolver/internal/domain/tla"
 	"contextmapper.org/tla-resolver/internal/infrastructure/persistence"
 	"contextmapper.org/tla-resolver/internal/infrastructure/persistence/internal_repos"
-	"encoding/json"
-	"fmt"
+	ddbconversions "github.com/aereal/go-dynamodb-attribute-conversions/v2"
+
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 func PutAcceptedTLAHandler(event events.EventBridgeEvent) (bool, error) {
@@ -24,16 +29,19 @@ func PutAcceptedTLAHandler(event events.EventBridgeEvent) (bool, error) {
 	}
 
 	var acceptedTLAGroup tla.TLAGroup
-	err = UnmarshalStreamImage(dynamoDbEventRecord.Change.NewImage, &acceptedTLAGroup)
+	m := ddbconversions.AttributeValueMapFrom(dynamoDbEventRecord.Change.NewImage)
+	err = attributevalue.UnmarshalMap(m, &acceptedTLAGroup)
 	if err != nil {
+		fmt.Println("Error unmarshalling TLA group detail:", err)
 		return false, err
 	}
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Fatalf("unable to load SDK config, %v", err)
+	}
 
-	dynamodbClient := dynamodb.New(sess)
+	dynamodbClient := dynamodb.NewFromConfig(cfg)
 
 	repository := internal_repos.NewDynamoDBRepository(dynamodbClient)
 
@@ -48,24 +56,4 @@ func PutAcceptedTLAHandler(event events.EventBridgeEvent) (bool, error) {
 
 	fmt.Println("Successfully put accepted TLA")
 	return true, nil
-}
-
-// As recommended by a user on StackOverflow:
-// https://stackoverflow.com/a/50017398/4618781
-func UnmarshalStreamImage(attribute map[string]events.DynamoDBAttributeValue, out interface{}) error {
-	dbAttrMap := make(map[string]*dynamodb.AttributeValue)
-
-	for k, v := range attribute {
-		var dbAttr dynamodb.AttributeValue
-		bytes, marshalErr := v.MarshalJSON()
-		if marshalErr != nil {
-			return marshalErr
-		}
-		err := json.Unmarshal(bytes, &dbAttr)
-		if err != nil {
-			return err
-		}
-		dbAttrMap[k] = &dbAttr
-	}
-	return dynamodbattribute.UnmarshalMap(dbAttrMap, out)
 }

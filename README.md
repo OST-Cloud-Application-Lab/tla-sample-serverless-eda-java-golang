@@ -44,22 +44,17 @@ make build
 ```
 
 The app is built with the [Serverless Framework](https://www.serverless.com/) and can be deployed to AWS.
-Serverless contains a feature called [Serverless Compose](https://www.serverless.com/framework/docs/guides/compose/) which allows you to deploy multiple services together.
-With the `serverless-compose.yml` file in the root folder, both subprojects can be deployed together.
 
-_Note:_ If the deployment with the composition file fails, you have to deploy the subprojects separately.
-
-_Note:_ It is important to note that the `tla-resolver` project is dependent on the `tla-manager` project, as it uses the EventBridge event bus to receive events from the DynamoDB table of the `tla-manager` project.
-The dependency is reflected in the composition file `serverless-compose.yml` in the root folder.
-
-The command below deploys the entire monorepo to AWS. It will build both subprojects and deploy them together.
-To display the output of the deployment, the `--debug` flag can be used additionally.
+You have to deploy the subprojects separately. Call the following command in the subdirectories `tla-manager` and `tla-resolver`:
 
 ```bash
 serverless deploy
 ```
 
-To remove the entire CloudFormation stacks from AWS, the command below can be used. This will remove all resources that were created during the deployment by Serverless.
+_Note:_ It is important to note that the `tla-resolver` project is dependent on the `tla-manager` project, 
+as it uses the EventBridge event bus to receive events from the DynamoDB table of the `tla-manager` project.
+
+To remove the entire CloudFormation stacks from AWS, the command below can be used (per microservice). This will remove all resources that were created during the deployment by Serverless.
 ```bash
 serverless remove
 ```

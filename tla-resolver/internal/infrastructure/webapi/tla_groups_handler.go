@@ -1,24 +1,31 @@
 package webapi
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"contextmapper.org/tla-resolver/internal/application"
 	"contextmapper.org/tla-resolver/internal/infrastructure/persistence"
 	"contextmapper.org/tla-resolver/internal/infrastructure/persistence/internal_repos"
 	"contextmapper.org/tla-resolver/internal/infrastructure/webapi/mapper"
-	"encoding/json"
-	"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 func TlaGroupsHandler(_ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	ctx := context.TODO()
 
-	dynamodbClient := dynamodb.New(sess)
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Fatalf("unable to load SDK config, %v", err)
+	}
+
+	dynamodbClient := dynamodb.NewFromConfig(cfg)
 
 	// Initialize your repository here
 	repository := internal_repos.NewDynamoDBRepository(dynamodbClient)
