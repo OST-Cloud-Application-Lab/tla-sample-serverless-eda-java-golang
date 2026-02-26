@@ -52,6 +52,7 @@ deploy-all:
     - cd tla-manager
     - export SERVERLESS_ACCESS_KEY=${SERVERLESS_ACCESS_KEY}
     - export TLA_SAMPLE_APP_SERVERLESS_ORG=${TLA_SAMPLE_APP_SERVERLESS_ORG}
+    - export SLS_AWS_SDK=3
     - sls deploy
     - sls invoke --function seed_database --data 'unused'
     - cd ../tla-resolver
@@ -71,8 +72,9 @@ undeploy-all:
       - main
   script:
     - echo "Undeploying application..."
-    - cd tla-manager
+    - export SLS_AWS_SDK=3
+    - cd tla-resolver
     - sls remove
-    - cd ../tla-resolver
+    - cd ../tla-manager
     - sls remove
     - echo "Application successfully undeployed."
